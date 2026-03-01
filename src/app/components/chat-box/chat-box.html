@@ -1,0 +1,106 @@
+<div class="d-flex flex-column justify-content-between h-100">
+    <!-- user info -->
+    <div class="gray-bg p-2">
+        <div class="d-flex gap-3">
+            <!-- user image -->
+            <div class="user-img">
+                <img src="user.png" alt="">
+            </div>
+            <!-- user name -->
+            <div class="d-flex flex-column">
+                <h5 class="mb-0">{{ chat().name }}</h5>
+                <div class="d-flex align-items-center gap-1">
+                    @if (chat().recipientOnline) {
+                        <small class="active-mark online-status"></small>
+                        <span class="text-online">Online</span>
+                    } @else {
+                        <small class="active-mark offline-status"></small>
+                        <span class="text-offline">Offline</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- messages -->
+    <div #scrollableDiv  class="h-100 bg-chat p-3 overflow-auto overflow-x-hidden">
+        @for (message of messages(); track message.id) {
+            @if (isSelfMessage(message)){
+                <!-- self message -->
+                <div class="message-box self">
+                    <div class="d-flex flex-column">
+                        @if (message.type === 'TEXT'){
+                            <span>{{ message.content }}</span>
+                        } @else if (message.media) {
+                            <img width="200" class="cursor-pointer" [src]="'data:image/jpg;base64,' + message.media" alt="">
+                        }
+                        <small>
+                             {{ message.createdAt | date:'shortTime' }}
+                             @if (message.state === 'SENT') {
+                                <i class="fas fa-check"></i>
+                             } @else {
+                                <i class="fas fa-check seen"></i>
+                                <i class="fas fa-check seen ml-neg"></i>
+                             }
+                        </small>
+                    </div>
+                </div>
+            } @else {
+                <!-- friend message -->
+                <div class="message-box friend">
+                    <div class="d-flex flex-column">
+                        @if (message.type === 'TEXT'){
+                            <span>{{ message.content }}</span>
+                        } @else if (message.media) {
+                            <img width="200" class="cursor-pointer" [src]="'data:image/jpg;base64,' + message.media" alt="">
+                        }
+                        <small>{{ message.createdAt | date:'shortTime' }}</small>
+                    </div>
+                    
+                </div>
+            }
+        }
+
+    </div>
+    <!-- writing bar -->
+    <div class="gray-bg p-2">
+            <div class="d-flex align-items-center gap-2 position-relative">
+                <!-- upload file -->
+                <i class="fas fa-paperclip cursor-pointer"
+                (click)="inputFile.click()"
+                ></i>
+                <input #inputFile 
+                    type="file" 
+                    class="d-none" 
+                    accept="image/*,video/*,audio/*"
+                    (change)="uploadFile($event.target)"
+                >
+                <!-- emoji -->
+                <i class="far fa-smile cursor-pointer" (click)="toggleEmojis()"></i>
+                @if (showEmojis) {
+                    <emoji-mart
+                        [set]="'google'"
+                        title="Pick your emoji"
+                        emoji="smile"
+                        class="emojis-panel"
+                        (emojiSelect)="emojiSelected($event)"
+                    ></emoji-mart>
+                }
+                <!-- input -->
+                <input 
+                    type="text" 
+                    class="form-control form-control-sm flex-fill"
+                    placeholder="Type a message"
+                    aria-label="Type a message"
+                    [(ngModel)]="messageContent"
+                    (keydown)="keyDown($event)"
+                    (click)="onClick()"
+                >
+                <!-- send button or record button -->
+                 @if (messageContent) {
+                    <i class="fas fa-paper-plane cursor-pointer" (click)="sendMessage()"></i>
+                } @else {
+                    <i class="fas fa-microphone cursor-pointer"></i>
+                }
+        </div>
+    </div>
+</div>

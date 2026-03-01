@@ -1,0 +1,92 @@
+<div class="sticky-top bg-white">
+    <div class="d-flex justify-content-between align-items-center gap-2 p-2">
+        <h4>Chat</h4>
+        @if (!searchNewContact) {
+            <i class="fas fa-comment-medical cursor-pointer" (click)="searchContact()"></i>
+        } @else {
+            <i class="fas fa-times-circle cursor-pointer" (click)="searchNewContact = false"></i>
+        }
+    </div>
+    <!-- Search and Tags -->
+    <div class="d-flex flex-column gap-2 p-2">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Search in the chats"
+                aria-label="Search in the chats"
+            />
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge rounded-pill text-bg-light cursor-pointer">All</span>
+            <span class="badge rounded-pill text-bg-light cursor-pointer">Unread</span>
+            <span class="badge rounded-pill text-bg-light cursor-pointer">Starred</span>
+        </div>
+    </div>
+</div>
+<!--  -->
+<div class="chat-list mt-3 overflow-auto">
+    <!-- chats -->
+    @if (chats().length && !searchNewContact) {
+        @for (chat of chats(); track chat.id) {
+            <div class="d-flex align-items-center justify-content-between gap-3 p-2 border-bottom-gray"
+            (click)="chatClicked(chat)"
+            >
+                <!-- chat name -->
+                <div class="d-flex gap-2">
+                    <!-- user image -->
+                    <div class="user-img">
+                        <img src="user.png" alt="">
+                    </div>
+                    <!-- chat name -->
+                     <div class="d-flex flex-column">
+                        <span class="fw-bold">{{ chat.name }}</span>
+                        <small>
+                            @if(chat.lastMessage === "Attachment") {
+                                <i class="fas fa-image"></i>
+                            } @else {
+                                {{ wrapMessage(chat.lastMessage) }}
+                            }
+                        </small> 
+                    </div>
+                </div>
+                <!-- unread count -->
+                <div class="unread-count d-flex flex-column align-items-end gap-1">
+                    <span class="msg-date" [class.unread]="chat.unreadCount && chat.unreadCount > 0">{{ formatMessageDateTime(chat.lastMessageTime) }}</span>
+                    @if (chat.unreadCount && chat.unreadCount > 0) {
+                        <small class="unread-msg-badge">{{ chat.unreadCount }}</small>
+                    }
+                </div>                
+            </div>
+        }
+    } @else if (searchNewContact) {
+        @for (contact of contacts; track contact.id) {
+            <div class="d-flex align-items-center justify-content-between gap-3 p-2 border-bottom-gray"
+            (click)="contactClicked(contact)"
+            >
+                <!-- chat name -->
+                <div class="d-flex gap-2">
+                    <!-- user image -->
+                    <div class="user-img">
+                        <img src="user.png" alt="">
+                    </div>
+                    <!-- chat name -->
+                     <div class="d-flex flex-column">
+                        <span class="fw-bold">{{ contact.firstName + " " + contact.lastName }}</span>
+                        @if (contact.online) {
+                            <small class="text-success">Online</small>
+                        } @else {
+                            <small class="text-secondary">Last seen&nbsp;{{ formatMessageDateTime(contact.lastSeen) }}</small>
+                        }
+                    </div>
+                </div>                
+            </div>
+        }
+    } @else {
+        <span class="d-flex flex-column align-items-center gap-2 p-2 border-bottom-gray">
+            <i class="fas fa-comments"></i>
+            <span>No chats yet</span>
+        </span>
+    }
+</div>

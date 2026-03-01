@@ -1,0 +1,42 @@
+<div class="main d-flex flex-column justify-content-center align-items-center">
+    <div class="background-green"></div>
+    <div class="main-container d-flex">
+        <div class="gray-bg p-3 d-flex flex-column justify-content-between">
+            <div>
+                <i class="fa-solid fa-message cursor-pointer"></i>
+            </div>
+            <div class="d-flex flex-column gap-3">
+                <i class="fa-solid fa-user cursor-pointer" (click)="userProfile()"></i>
+                <i class="fa-solid fa-door-open cursor-pointer" (click)="logout()"></i>
+            </div>
+        </div>
+        <div class="d-flex w-100">
+            <!-- chat list -->
+            <div class="col-3">
+                <app-chat-list
+                    [chats]="chats()"
+                    (chatSelected)="chatSelected($event)"
+                    (setNewChat)="onSendNewChat($event)"
+                >
+                </app-chat-list>
+            </div>
+            <!-- chat box -->
+            <div class="col-9">
+                @if (selectedChat && selectedChat.id) {
+                    <app-chat-box 
+                    [chat]="selectedChat" 
+                    [messages]="chatMessages()"
+                    (setNewMessage)="onSendNewMessage($event)"
+                    (updateLastMessage)="onUpdateLastMessage($event)"
+                    ></app-chat-box>
+                } @else {
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 w-100 bg-chat">
+                        <img src="wa_banner.png" alt=""> 
+                        <h2 class="text-black-50">WhatsApp Clone Application By Hamada Reda</h2>
+                        <p class="text-black-50"></p>
+                    </div>   
+                }
+            </div>
+        </div>
+    </div>
+</div>
