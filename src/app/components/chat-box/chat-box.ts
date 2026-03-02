@@ -1,11 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, input, output, ViewChild } from '@angular/core';
 import { ChatResponse, MessageRequest, MessageResponse, UserResponse } from '../../api/models';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../api/api';
 import { from } from 'rxjs';
 import { DatePipe } from '@angular/common';
-import { saveMessage } from '../../api/functions';
+import { saveMessage, uploadMedia } from '../../api/functions';
 
 @Component({
   selector: 'app-chat-box',
@@ -13,7 +13,7 @@ import { saveMessage } from '../../api/functions';
   templateUrl: './chat-box.html',
   styleUrl: './chat-box.scss',
 })
-export class ChatBox {
+export class ChatBox implements AfterViewChecked {
 
   chat = input<ChatResponse>({});
   showEmojis: boolean = false;
@@ -21,10 +21,23 @@ export class ChatBox {
   messages = input<MessageResponse[]>([]);
   setNewMessage = output<MessageResponse>();
   updateLastMessage = output<string>();
+  @ViewChild('scrollableDiv') scrollableDiv!: ElementRef<HTMLDivElement>;
 
   constructor(
     private api: Api
   ) {}
+
+  ngAfterViewChecked() {
+    this.scrollToBottom();
+  }
+
+  scrollToBottom(): void {
+    const el = this.scrollableDiv.nativeElement;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
 
 
   ngOnInit() {
@@ -39,8 +52,46 @@ export class ChatBox {
     this.showEmojis = !this.showEmojis;
   }
 
-  uploadFile(event: EventTarget | null) {
-    
+  extractFileFromTarget(target: EventTarget | null): File | null {
+    const input = target as HTMLInputElement;
+    if (input && input.files && input.files.length > 0) {
+      return input.files[0];
+    }
+    return null;
+  }
+
+  uploadFile(target: EventTarget | null) {
+    const file = this.extractFileFromTarget(target);
+    if(file != null) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (reader.result) {
+          const mediaLines = (reader.result as string).split(',')[1];
+          from(this.api.invoke(uploadMedia, { 
+            'chat-id': this.chat().id ?? '',
+            body: {
+              file: file
+            }
+           })).subscribe({
+            next: () => {
+              const newMessage: MessageResponse = {
+                content: "Attachment",
+                senderId: this.chat().currentUserId,
+                receiverId: this.chat().otherUserId,
+                type: 'IMAGE',
+                state: 'SENT',
+                media: [mediaLines],
+                createdAt: new Date().toISOString(),
+              }
+              this.setNewMessage.emit(newMessage);
+              this.updateLastMessage.emit('Attachment');
+            }
+           });
+          
+        }
+      }
+    }
   }
 
   emojiSelected(emojiSelected: any) {

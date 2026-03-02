@@ -38,6 +38,14 @@ export class Main implements OnInit {
     this.getAllChats();
   }
 
+  ngOnDestroy(): void {
+    if (this.socketClient !== null) {
+      this.socketClient.disconnect();
+      this.notificationSubscription.unsubscribe();
+      this.socketClient = null;
+    }
+  }
+
   private async getAllChats() {
     try {
       const chats = await this.api.invoke(getAllChats);

@@ -45,6 +45,7 @@
                         <small>
                             @if(chat.lastMessage === "Attachment") {
                                 <i class="fas fa-image"></i>
+                                <span>{{chat.lastMessage}}</span>
                             } @else {
                                 {{ wrapMessage(chat.lastMessage) }}
                             }
