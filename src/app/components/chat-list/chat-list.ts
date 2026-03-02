@@ -18,15 +18,20 @@ export class ChatList {
   contacts: Array<UserResponse> = [];
   chatSelected= output<ChatResponse>();
   setNewChat = output<ChatResponse>();
+  currentUserId: string = '';
 
   constructor(
     private api: Api,
     private keycloakService: KeycloakService
   ) {}
 
+  ngOnInit(): void {
+    this.getCurrentUserId(this.keycloakService.userId);
+  }
+
   private getCurrentUserId(kecloakId: string) {
     from(this.api.invoke(findUserByKeycloakId, { "keycloak-id": kecloakId }))
-      .subscribe(user => user.id as string);
+      .subscribe(user => this.currentUserId = user.id as string);
   }
 
   async searchContact() {
@@ -103,7 +108,7 @@ export class ChatList {
           name: contact.firstName + ' ' + contact.lastName,
           lastMessage: '',
           unreadCount: 0,
-          currentUserId: this.getCurrentUserId(this.keycloakService.userId) ?? '',
+          currentUserId: this.currentUserId,
           otherUserId: contact.id ?? '',
           recipientOnline: contact.online ?? false,
           lastMessageTime: new Date().toISOString()

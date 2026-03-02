@@ -26,13 +26,10 @@ export class ChatBox {
     private api: Api
   ) {}
 
-  currentUser?: UserResponse;
 
   ngOnInit() {
     
   }
-
-
 
   isSelfMessage(message: MessageResponse): boolean {
     return message.senderId === this.chat().currentUserId;
