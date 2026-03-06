@@ -24,6 +24,35 @@ export class KeycloakService {
     const authenticated = await this.keycloak.init({
       onLoad: "login-required"
     });
+    if (authenticated) {
+      const profile = await this.keycloak.loadUserProfile();
+      console.log("Authenticated");
+      console.log(this.keycloak.token);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.tokenParsed);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.idToken);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.idTokenParsed);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.refreshToken);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.refreshTokenParsed);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.realm);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.realmAccess);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.resourceAccess);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.loginRequired);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.userInfo);
+      console.log("-----------------------------------");
+      console.log(this.keycloak.profile);
+      console.log("-----------------------------------");
+      console.log("Profile:", profile);
+    }
   }
 
   login() {
