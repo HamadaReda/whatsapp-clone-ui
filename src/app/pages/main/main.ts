@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ChatList } from '../../components/chat-list/chat-list';
-import { ChatResponse, MessageResponse } from '../../api/models';
+import { ChatResponse, MessageResponse, UserResponse } from '../../api/models';
 import { Api } from '../../api/api';
 import { findUserByKeycloakId, getAllChats, getMessages, markMessageAsRead } from '../../api/functions';
 import { from, take } from 'rxjs';
@@ -28,18 +28,19 @@ export class Main implements OnInit {
   loading = false;
   socketClient: any = null;
   notificationSubscription: any = null;
-  // currentUser = signal<UserResponse | null>(null);
+  currentUser = signal<UserResponse | null>(null);
 
   constructor(
     private api: Api,
     private keycloakService: KeycloakService
   ) {}
   
-  ngOnInit(): void {
-    // this.getCurrentUser();
-    // this.initWebSocket();
-    this.getAllChats();             // 2nd
+  async ngOnInit(): Promise<void> {
+    await this.getCurrentUser();
+    this.initWebSocket();
+    await this.getAllChats();             // 2nd
   }
+
 
   ngOnDestroy(): void {
     if (this.socketClient !== null) {
@@ -48,6 +49,19 @@ export class Main implements OnInit {
       this.socketClient = null;
     }
   }
+
+    private async getCurrentUser() {
+      try {
+        const user = await this.api.invoke(findUserByKeycloakId, {
+          "keycloak-id": this.keycloakService.userId
+        });
+
+        this.currentUser.set(user);
+
+      } catch (error) {
+        console.error("Error fetching user", error);
+      }
+    }
 
   private async getAllChats() {
     try {
@@ -131,20 +145,8 @@ export class Main implements OnInit {
     from(this.api.invoke(findUserByKeycloakId, { "keycloak-id": kecloakId }))
       .subscribe(user => user.id as string);
    }
-// private async getCurrentUser() {
-//   try {
-//     const user = await this.api.invoke(findUserByKeycloakId, {
-//       "keycloak-id": this.keycloakService.userId
-//     });
 
-//     this.currentUser.set(user);
 
-//   } catch (error) {
-//     console.error("Error fetching user", error);
-//   }
-// }
-
-/*
   private initWebSocket() {
     if (this.keycloakService.keycloak.tokenParsed?.sub) {
       const socket = new SockJS(`${environment.apiUrl}/ws`);
@@ -225,7 +227,6 @@ export class Main implements OnInit {
       }
     }
   }
-*/
 
 
 }
