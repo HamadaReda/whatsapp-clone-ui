@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ChatList } from '../../components/chat-list/chat-list';
-import { ChatResponse, MessageResponse, UserResponse } from '../../api/models';
+import { ChatResponse, MessageResponse } from '../../api/models';
 import { Api } from '../../api/api';
 import { findUserByKeycloakId, getAllChats, getMessages, markMessageAsRead } from '../../api/functions';
 import { from, take } from 'rxjs';
@@ -9,6 +9,7 @@ import { ChatBox } from '../../components/chat-box/chat-box';
 import  SockJS from 'sockjs-client';
 import * as Stomp from 'stompjs';
 import { Notification } from '../../models/notification';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-main',
@@ -27,7 +28,7 @@ export class Main implements OnInit {
   loading = false;
   socketClient: any = null;
   notificationSubscription: any = null;
-  currentUser = signal<UserResponse | null>(null);
+  // currentUser = signal<UserResponse | null>(null);
 
   constructor(
     private api: Api,
@@ -35,9 +36,9 @@ export class Main implements OnInit {
   ) {}
   
   ngOnInit(): void {
-    this.getCurrentUser();
-    this.initWebSocket();
-    this.getAllChats();
+    // this.getCurrentUser();
+    // this.initWebSocket();
+    this.getAllChats();             // 2nd
   }
 
   ngOnDestroy(): void {
@@ -126,22 +127,27 @@ export class Main implements OnInit {
     this.keycloakService.logout();  
   }  
 
-private async getCurrentUser() {
-  try {
-    const user = await this.api.invoke(findUserByKeycloakId, {
-      "keycloak-id": this.keycloakService.userId
-    });
+   private getCurrentUserId(kecloakId: string) {
+    from(this.api.invoke(findUserByKeycloakId, { "keycloak-id": kecloakId }))
+      .subscribe(user => user.id as string);
+   }
+// private async getCurrentUser() {
+//   try {
+//     const user = await this.api.invoke(findUserByKeycloakId, {
+//       "keycloak-id": this.keycloakService.userId
+//     });
 
-    this.currentUser.set(user);
+//     this.currentUser.set(user);
 
-  } catch (error) {
-    console.error("Error fetching user", error);
-  }
-}
+//   } catch (error) {
+//     console.error("Error fetching user", error);
+//   }
+// }
 
+/*
   private initWebSocket() {
     if (this.keycloakService.keycloak.tokenParsed?.sub) {
-      const socket = new SockJS(`http://localhost:8080/ws`);
+      const socket = new SockJS(`${environment.apiUrl}/ws`);
       this.socketClient = Stomp.over(socket);
       const subUrl = `/user/${this.keycloakService.keycloak.tokenParsed?.sub}/chat`;
       this.socketClient.connect({
@@ -219,7 +225,7 @@ private async getCurrentUser() {
       }
     }
   }
-
+*/
 
 
 }
