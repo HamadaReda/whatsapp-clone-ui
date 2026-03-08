@@ -14,8 +14,8 @@
             <!-- chat list -->
             <div class="col-3">
                 <app-chat-list
-                    [chats]="chats()"
                     [currentUser]="currentUser()"
+                    [chats]="chats()"
                     (chatSelected)="chatSelected($event)"
                     (setNewChat)="onSendNewChat($event)"
                 >

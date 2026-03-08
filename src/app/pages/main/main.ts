@@ -9,6 +9,7 @@ import { ChatBox } from '../../components/chat-box/chat-box';
 import  SockJS from 'sockjs-client';
 import * as Stomp from 'stompjs';
 import { Notification } from '../../models/notification';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-main',
@@ -34,11 +35,12 @@ export class Main implements OnInit {
     private keycloakService: KeycloakService
   ) {}
   
-  ngOnInit(): void {
-    this.getCurrentUser();
+  async ngOnInit(): Promise<void> {
+    await this.getCurrentUser();
     this.initWebSocket();
-    this.getAllChats();
+    await this.getAllChats();             // 2nd
   }
+
 
   ngOnDestroy(): void {
     if (this.socketClient !== null) {
@@ -47,6 +49,19 @@ export class Main implements OnInit {
       this.socketClient = null;
     }
   }
+
+    private async getCurrentUser() {
+      try {
+        const user = await this.api.invoke(findUserByKeycloakId, {
+          "keycloak-id": this.keycloakService.userId
+        });
+
+        this.currentUser.set(user);
+
+      } catch (error) {
+        console.error("Error fetching user", error);
+      }
+    }
 
   private async getAllChats() {
     try {
@@ -126,22 +141,15 @@ export class Main implements OnInit {
     this.keycloakService.logout();  
   }  
 
-private async getCurrentUser() {
-  try {
-    const user = await this.api.invoke(findUserByKeycloakId, {
-      "keycloak-id": this.keycloakService.userId
-    });
+   private getCurrentUserId(kecloakId: string) {
+    from(this.api.invoke(findUserByKeycloakId, { "keycloak-id": kecloakId }))
+      .subscribe(user => user.id as string);
+   }
 
-    this.currentUser.set(user);
-
-  } catch (error) {
-    console.error("Error fetching user", error);
-  }
-}
 
   private initWebSocket() {
     if (this.keycloakService.keycloak.tokenParsed?.sub) {
-      const socket = new SockJS(`http://localhost:8080/ws`);
+      const socket = new SockJS(`${environment.apiUrl}/ws`);
       this.socketClient = Stomp.over(socket);
       const subUrl = `/user/${this.keycloakService.keycloak.tokenParsed?.sub}/chat`;
       this.socketClient.connect({
@@ -219,7 +227,6 @@ private async getCurrentUser() {
       }
     }
   }
-
 
 
 }
